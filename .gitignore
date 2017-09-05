@@ -1,0 +1,6 @@
+.idea/*
+/src/main/resources/timeusage/atussum.csv
+*.iml
+*.ipr
+*.iws
+*target*
