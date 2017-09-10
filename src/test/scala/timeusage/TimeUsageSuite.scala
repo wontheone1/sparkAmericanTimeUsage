@@ -29,4 +29,11 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     assert(testSchema.fields(2).name === "fieldC")
     assert(testSchema.fields(2).dataType === DoubleType)
   }
+
+  test("row") {
+    val testRow = timeUsage.row(List("fieldA", "0.3", "1"))
+    assert(testRow(0).getClass.getName === "java.lang.String")
+    assert(testRow(1).getClass.getName === "java.lang.Double")
+    assert(testRow(2).getClass.getName === "java.lang.Double")
+  }
 }
