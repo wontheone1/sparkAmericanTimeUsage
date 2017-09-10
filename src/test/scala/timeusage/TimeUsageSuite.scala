@@ -16,6 +16,7 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
 
   lazy val (columns, initDf) = timeUsage.read("/timeusage/testTimeUsage.csv")
   lazy val (primaryNeedsColumns, workColumns, otherColumns) = timeUsage.classifiedColumns(columns)
+  lazy val summaryDf:DataFrame = timeUsage.timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
 
   test("timeUsage") {
     assert(timeUsage.spark.sparkContext.appName === "Time Usage")
@@ -55,4 +56,11 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     assert(others.contains("t180699"))
 
   }
+
+  test("timeUsageSummary"){
+    assert(summaryDf.columns.length === 6)
+    assert(summaryDf.count === 9) // filtering unemployable people results in reduced record number
+    summaryDf.show()
+  }
+
 }
