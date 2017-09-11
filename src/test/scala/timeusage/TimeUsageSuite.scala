@@ -2,7 +2,7 @@ package timeusage
 
 import org.apache.log4j.{Level, LogManager}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{ColumnName, DataFrame, Row, SparkSession}
+import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -22,6 +22,7 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
   lazy val summaryDf:DataFrame = timeUsage.timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
   lazy val finalDf: DataFrame = timeUsage.timeUsageGrouped(summaryDf)
   lazy val sqlDf:DataFrame = timeUsage.timeUsageGroupedSql(summaryDf)
+  lazy val summaryDs:Dataset[TimeUsageRow] = timeUsage.timeUsageSummaryTyped(summaryDf)
 
   test("timeUsage") {
     assert(timeUsage.spark.sparkContext.appName === "Time Usage")
@@ -77,5 +78,12 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     assert(sqlDf.count === 5)
     assert(sqlDf.head.getDouble(3) === 13.1)
     sqlDf.show()
+  }
+
+  test("timeUsageSummaryTyped") {
+    assert(summaryDs.head.getClass.getName === "timeusage.TimeUsageRow")
+    assert(summaryDs.head.other === 8.75)
+    assert(summaryDs.count === 9)
+    summaryDs.show()
   }
 }
