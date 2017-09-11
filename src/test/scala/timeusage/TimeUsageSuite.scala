@@ -21,6 +21,7 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
   lazy val (primaryNeedsColumns, workColumns, otherColumns) = timeUsage.classifiedColumns(columns)
   lazy val summaryDf:DataFrame = timeUsage.timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
   lazy val finalDf: DataFrame = timeUsage.timeUsageGrouped(summaryDf)
+  lazy val sqlDf:DataFrame = timeUsage.timeUsageGroupedSql(summaryDf)
 
   test("timeUsage") {
     assert(timeUsage.spark.sparkContext.appName === "Time Usage")
@@ -72,4 +73,9 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     finalDf.show()
   }
 
+  test("timeUsageGroupedSql") {
+    assert(sqlDf.count === 5)
+    assert(sqlDf.head.getDouble(3) === 13.1)
+    sqlDf.show()
+  }
 }
