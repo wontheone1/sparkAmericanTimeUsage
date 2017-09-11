@@ -1,5 +1,6 @@
 package timeusage
 
+import org.apache.log4j.{Level, LogManager}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{ColumnName, DataFrame, Row, SparkSession}
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
@@ -12,11 +13,14 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
 
+
+  LogManager.getRootLogger.setLevel(Level.ERROR)
   lazy val timeUsage = TimeUsage
 
   lazy val (columns, initDf) = timeUsage.read("/timeusage/testTimeUsage.csv")
   lazy val (primaryNeedsColumns, workColumns, otherColumns) = timeUsage.classifiedColumns(columns)
   lazy val summaryDf:DataFrame = timeUsage.timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
+  lazy val finalDf: DataFrame = timeUsage.timeUsageGrouped(summaryDf)
 
   test("timeUsage") {
     assert(timeUsage.spark.sparkContext.appName === "Time Usage")
@@ -25,7 +29,6 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
 
   test("dfSchema") {
     val testSchema = timeUsage.dfSchema(List("fieldA", "fieldB", "fieldC"))
-
     assert(testSchema.fields(0).name === "fieldA")
     assert(testSchema.fields(0).dataType === StringType)
     assert(testSchema.fields(1).name === "fieldB")
@@ -61,6 +64,12 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
     assert(summaryDf.columns.length === 6)
     assert(summaryDf.count === 9) // filtering unemployable people results in reduced record number
     summaryDf.show()
+  }
+
+  test("timeUsageGrouped") {
+    assert(finalDf.count === 5)
+    assert(finalDf.head.getDouble(3) === 13.1)
+    finalDf.show()
   }
 
 }
